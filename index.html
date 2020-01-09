@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <script>
+        onload = iniciar;
+        let socket = null
+        function procesarMensaje(socket, mensaje){
+            console.log("procesando mensaje: " + mensaje);
+            mensaje = JSON.parse(mensaje);
+            //console.log("mensaje: " + mensaje);
+            switch(mensaje.idAction){
+                case "enviarTarget":
+                    console.log("enviando target");
+                    socket.send('{"idAction": "registrarTarget", "idTarget": 1, "idChannel":1, "idConnection":' + mensaje.idConnection + '}');
+                    break;
+            }
+        }
+        function iniciar(){
+            console.log("iniciando");
+            socket = new WebSocket("ws://localhost:8080");
+            socket.onopen = function(e) {
+                console.log("[open] Connection established");
+                console.log("Sending to server");
+            };
+            
+            socket.onmessage = function(event) {
+                procesarMensaje(socket, event.data);
+            };
+
+            socket.onclose = function(event) {
+                if (event.wasClean) {
+                    console.log(`[close] Connection closed cleanly, code=${event.code} reason=${event.reason}`);
+                } else {
+                    // e.g. server process killed or network down
+                    // event.code is usually 1006 in this case
+                    console.log('[close] Connection died');
+                }
+            };
+
+            socket.onerror = function(error) {
+                console.log(`[error] ${error.message}`);
+            };
+
+        }
+        function enviarMensaje(){
+            console.log("enviando mensaje")
+            let mensaje = document.getElementById("mensaje");
+            socket.send(mensaje);
+        }
+    </script>
+</head>
+<body>
+    <form action="" name = "formulario" id = "formulario">
+        <input type="text" id = "mensaje" name = "mensaje" value = "Mensaje">
+        <input type="button" value="Enviar" id = "enviar" onclick = "enviarMensaje(event)">
+    </form>
+    
+</body>
+</html>
